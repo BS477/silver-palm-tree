@@ -1,7 +1,22 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, List, Text, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    full_name = Column(String(200), nullable=True)
+    hashed_password = Column(Text, nullable=False)
+    # roles stored as comma-separated string, e.g. "ROLE_ADMIN,ROLE_USER"
+    roles = Column(String(500), nullable=False, default="ROLE_USER")
+
+    def get_roles_list(self) -> List[str]:
+        return [r.strip() for r in (self.roles or "").split(",") if r.strip()]
+
+    def __repr__(self) -> str:
+        return f"User(id={self.id!r}, username={self.username!r})"
 
 # Model danych
 class Movie:
