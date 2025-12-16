@@ -1,66 +1,77 @@
 # consumer.py
-import csv
+import sqlite3
 import time
-import os
 from datetime import datetime
 
-FILE_NAME = "tasks.csv"
+DB_NAME = "tasks.db"
 
 CHECK_INTERVAL = 5
 WORK_TIME = 30
 
-def read_tasks():
-    tasks = []
-    with open(FILE_NAME, "r", newline="") as f:
-        reader = csv.reader(f)
-        header = next(reader)
-        for row in reader:
-            tasks.append(row)
-    return header, tasks
-
-def write_tasks(header, tasks):
-    with open(FILE_NAME, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(header)
-        writer.writerows(tasks)
+def get_connection():
+    return sqlite3.connect(DB_NAME)
 
 def consume_task():
-    if not os.path.isfile(FILE_NAME):
-        print("Brak pliku kolejki...")
-        return False
+    conn = get_connection()
+    cur = conn.cursor()
 
-    header, tasks = read_tasks()
+    # znajdź pierwsze pending
+    cur.execute("""
+        SELECT id FROM tasks
+        WHERE status = 'pending'
+        ORDER BY id
+        LIMIT 1
+    """)
+    row = cur.fetchone()
 
-    # Znajdź pierwsze pending
-    for i, task in enumerate(tasks):
-        if task[1] == "pending":
-            print(f"[{datetime.now()}] Konsument pobiera zadanie {i}")
-            tasks[i][1] = "in_progress"
-            write_tasks(header, tasks)
-            return i  # index zadania
+    if row is None:
+        conn.close()
+        return None
 
-    return None
+    task_id = row[0]
 
-def finish_task(task_index):
-    header, tasks = read_tasks()
-    tasks[task_index][1] = "done"
-    write_tasks(header, tasks)
+    # oznacz jako in_progress
+    cur.execute("""
+        UPDATE tasks
+        SET status = 'in_progress'
+        WHERE id = ?
+    """, (task_id,))
+
+    conn.commit()
+    conn.close()
+
+    print(f"[{datetime.now()}] Konsument pobiera zadanie {task_id}")
+    return task_id
+
+def finish_task(task_id):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE tasks
+        SET status = 'done'
+        WHERE id = ?
+    """, (task_id,))
+
+    conn.commit()
+    conn.close()
 
 def consumer_loop():
     print("Konsument wystartował...")
 
     while True:
-        task_index = consume_task()
+        task_id = consume_task()
 
-        if task_index is None:
+        if task_id is None:
             print("Brak zadań. Czekam...")
             time.sleep(CHECK_INTERVAL)
             continue
 
-        print(f"Rozpoczynam pracę nad zadaniem {task_index} przez {WORK_TIME} sekund...")
+        print(f"Rozpoczynam pracę nad zadaniem {task_id} przez {WORK_TIME} sekund...")
         time.sleep(WORK_TIME)
-        finish_task(task_index)
-        print(f"Zadanie {task_index} zakończone.")
+
+        finish_task(task_id)
+        print(f"Zadanie {task_id} zakończone.")
 
 if __name__ == "__main__":
     consumer_loop()
