@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  service_a:
+    build: ./service_a
+    container_name: service_a
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    depends_on:
+      - rabbitmq
+
+  service_b:
+    build: ./service_b
+    container_name: service_b
+    ports:
+      - "8001:8001"
+    environment:
+      - RABBIT_URL=amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      - rabbitmq
+
+  consumer:
+    build: ./service_b
+    command: ["python", "worker.py"]
+    environment:
+      - RABBIT_URL=amqp://guest:guest@rabbitmq:5672/
+      - SERVICE_A_URL=http://service_a:8000/results
+      - MAX_RETRIES=5
+      - PREFETCH_COUNT=1
+    depends_on:
+      - rabbitmq
+      - service_a
+    deploy:
+      replicas: ${CONSUMER_REPLICAS:-1}

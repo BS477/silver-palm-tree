@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <title>Person Detector</title>
+</head>
+
+<body>
+    <h1>Image from server disk</h1>
+    <form action="{{ url_for("read_from_disk") }}" method="get">
+        <label for="path">Path</label><br>
+        <input type="text" id="path" name="path" required="required"><br>
+        <label for="save">Save result image</label>
+        <input type="checkbox" id="save" name="save"><br>
+        <input type="submit">
+    </form>
+    <h1>Image from website URL</h1>
+    <form action="{{ url_for("read_from_url") }}" method="get">
+        <label for="text">URL</label><br>
+        <input type="url" id="url" name="url" required="required"><br>
+        <label for="save1">Save result image</label>
+        <input type="checkbox" id="save1" name="save"><br>
+        <input type="submit">
+    </form>
+    <h1>Send image for analysis</h1>
+    <form action="{{ url_for("send_image") }}" method="post" enctype="multipart/form-data">
+        <label for="image">Image</label><br>
+        <input type="file" id="image" name="image" required="required" accept="image/*"><br>
+        <label for="save2">Save result image</label>
+        <input type="checkbox" id="save2" name="save"><br>
+        <input type="submit">
+    </form>
+    <h1>Verify task status</h1>
+    <form action="{{ url_for("verify_status") }}" method="get">
+        <label for="id">ID</label><br>
+        <input type="number" id="id" name="id" min="1" required="required"><br>
+        <input type="submit">
+    </form>
+</body>
+
+</html>
