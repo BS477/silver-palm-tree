@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+aio_pika
+aiohttp
+pydantic
+httpx
+numpy
+opencv-python-headless
+requests
+pytest

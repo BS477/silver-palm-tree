@@ -22,11 +22,8 @@ Skalowanie konsumerów:
 - Alternatywnie: docker compose up --scale consumer=3
 
 Testy:
-- Testy lokalne: wymagają Pythona i pytest
-  cd repo
-  pip install -r service_a/requirements.txt -r service_b/requirements.txt
-  pip install pytest httpx
-  pytest
+- Testy z kontenera docker o nazwie unittests
+	docker exec unittests pytest
 
 Uwaga o retry:
 - Konsumer używa manualnego ack/nack; przy niepowodzeniu wysyłki do Serwisu A wiadomość jest ponownie publikowana z nagłówkiem `x-attempts`.

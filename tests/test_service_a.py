@@ -4,6 +4,8 @@ import pytest
 
 from service_a.app import app, startup, DB_PATH
 
+SERVICE_A_URL = os.environ.get("SERVICE_A_URL", "localhost:8000")
+
 client = TestClient(app)
 
 def setup_module(module):
@@ -20,7 +22,7 @@ def teardown_module(module):
 
 def test_post_and_get_result():
     payload = {"image_url": "http://example.org/image.jpg", "count": 3}
-    r = client.post("/results", json=payload)
+    r = client.post(SERVICE_A_URL+"/results", json=payload)
     assert r.status_code == 201
     data = r.json()
     assert data["image_url"] == payload["image_url"]

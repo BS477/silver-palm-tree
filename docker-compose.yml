@@ -46,5 +46,20 @@ services:
     depends_on:
       - rabbitmq
       - service_a
-    deploy:
-      replicas: ${CONSUMER_REPLICAS:-1}
+
+  unittests:
+    build: ./tests
+    container_name: unittests
+    volumes:
+      - tests:/app/tests
+    environment:
+      - RABBIT_URL=amqp://guest:guest@rabbitmq:5672/
+      - SERVICE_A_URL=http://service_a:8000
+      - SERVICE_B_URL=http://service_b:8001
+    depends_on:
+      - rabbitmq
+      - service_a
+      - service_b
+
+volumes:
+  tests:
