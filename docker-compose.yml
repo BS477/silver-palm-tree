@@ -46,6 +46,8 @@ services:
     depends_on:
       - rabbitmq
       - service_a
+    deploy:
+      replicas: ${CONSUMER_REPLICAS:-1}
 
   unittests:
     build: ./tests
@@ -62,4 +64,5 @@ services:
       - service_b
 
 volumes:
+
   tests:
